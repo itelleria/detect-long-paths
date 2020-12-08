@@ -19,19 +19,26 @@ public class DetectLongPathsApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		int limit = getLimit(args);
+		int pathLimit = getPathLimit(args);
+		int filenameLimit = getFilenameLimit(args);
 		String directory = getDirectoryToScan(args);
 
-		FileExplorer fileExplorer = new FileExplorer(limit);
-		var fileNames = fileExplorer.findFilesWithLongName(directory);
+		FileExplorer fileExplorer = new FileExplorer(pathLimit, filenameLimit);
+		var scanResult = fileExplorer.findFilesWithLongName(directory);
 
-		fileNames.stream().forEach(f -> LOGGER.info(f));
+		LOGGER.info("{} files detected with long name:", scanResult.getLongNameFileList().size());
 
-		LOGGER.info("Detected files: {}", fileNames.size());
+		scanResult.getLongNameFileList().stream()
+				.forEach(f -> LOGGER.info(f));
+
+		LOGGER.info("{} files detected with long paths:", scanResult.getLongPathFileList().size());
+
+		scanResult.getLongPathFileList().stream()
+				.forEach(f -> LOGGER.info(f));
 
 	}
 
-	private int getLimit(String[] args) {
+	private int getPathLimit(String[] args) {
 		if (!hasText(args[0])) {
 			throw new IllegalArgumentException();
 		}
@@ -39,13 +46,21 @@ public class DetectLongPathsApplication implements CommandLineRunner {
 		return Integer.parseInt(args[0]);
 	}
 
+	private int getFilenameLimit(String[] args) {
+		if (!hasText(args[1])) {
+			throw new IllegalArgumentException();
+		}
+
+		return Integer.parseInt(args[1]);
+	}
+
 	private String getDirectoryToScan(String[] args) {
 
-		if (!hasText(args[1])) {
+		if (!hasText(args[2])) {
 			return ".";
 		}
 
-		return args[1];
+		return args[2];
 	}
 
 }
